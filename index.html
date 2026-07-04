@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KMB Bus Dashboard — Elegant Dark Edition</title>
+    <title>KMB Bus Dashboard — Premium Beige Edition</title>
     <style>
-        /* Modern, Elegant Dark Design System */
+        /* Modern, Elegant Beige Design System with Enhanced Text Scale */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0d0e12; /* Premium deep midnight slate */
-            color: #f5f5f7; /* Soft ivory white */
+            background-color: #f4f0ea; /* Premium warm beige / linen */
+            color: #1a1a1a; /* Soft charcoal black */
             margin: 40px auto;
             padding: 0;
-            max-width: 600px;
+            max-width: 650px;
             letter-spacing: -0.01em;
             -webkit-font-smoothing: antialiased;
         }
@@ -21,89 +21,89 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            border-bottom: 1px solid #22252e;
-            padding-bottom: 20px;
-            margin-bottom: 40px;
+            border-bottom: 1px solid #d9d4cc;
+            padding-bottom: 22px;
+            margin-bottom: 45px;
         }
 
         #time-container {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
 
         #time {
-            font-size: 48px;
-            font-weight: 300; /* Ultra light elegant weight */
+            font-size: 56px; 
+            font-weight: 300; 
             letter-spacing: -0.03em;
-            color: #ffffff;
+            color: #1a1a1a;
             line-height: 1;
         }
 
         #date {
-            font-size: 13px;
+            font-size: 15px; 
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #6e6e73;
+            color: #7c766c;
         }
 
         #meta {
-            font-size: 13px;
+            font-size: 15px; 
             font-weight: 400;
-            color: #a1a1a6;
+            color: #5c5750;
             text-align: right;
-            line-height: 1.7;
+            line-height: 1.8;
         }
 
         .weather-line {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 6px;
+            gap: 8px;
         }
 
         .weather-icon {
-            font-size: 14px;
-            color: #ffffff;
+            font-size: 16px;
+            color: #1a1a1a;
         }
 
         .stop-banner {
-            font-size: 14px;
+            font-size: 16px; 
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            color: #6e6e73;
-            margin-bottom: 35px;
-            border-left: 2px solid #f5f5f7;
-            padding-left: 12px;
+            color: #7c766c;
+            margin-bottom: 40px;
+            border-left: 2.5px solid #1a1a1a;
+            padding-left: 14px;
         }
 
         .route-section {
-            margin-bottom: 45px;
+            margin-bottom: 50px;
         }
 
         .route-header {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            border-bottom: 1px solid #22252e;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 10px;
+            margin-bottom: 18px;
         }
 
         .route-title {
-            font-size: 24px;
+            font-size: 28px; 
             font-weight: 400;
             font-family: "Didot", "Bodoni MT", "Cinzel", serif; 
             letter-spacing: -0.02em;
-            color: #ffffff;
+            color: #1a1a1a;
         }
 
         .destination {
-            font-size: 13px;
+            font-size: 15px; 
             font-weight: 400;
-            color: #a1a1a6;
+            color: #5c5750;
         }
 
         table {
@@ -112,9 +112,9 @@
         }
 
         td {
-            padding: 16px 0;
+            padding: 18px 0; 
             vertical-align: middle;
-            border-bottom: 1px solid #16181f;
+            border-bottom: 1px solid #e3ded5;
         }
 
         tr:last-child td {
@@ -123,9 +123,9 @@
 
         .seq {
             width: 15%;
-            font-size: 12px;
+            font-size: 14px; 
             font-weight: 500;
-            color: #424245;
+            color: #a6a095;
             letter-spacing: 0.05em;
         }
 
@@ -138,27 +138,27 @@
         }
 
         .actual-time {
-            font-size: 18px;
+            font-size: 22px; 
             font-weight: 400;
-            color: #f5f5f7;
+            color: #1a1a1a;
         }
 
         .relative-mins {
-            font-size: 15px;
+            font-size: 18px; 
             font-weight: 500;
-            color: #ffffff;
+            color: #1a1a1a;
         }
         
         .arriving-soon {
-            color: #8e8e93;
+            color: #7c766c;
             font-style: italic;
         }
 
         .status-msg {
-            font-size: 14px;
+            font-size: 15px;
             font-style: italic;
-            padding: 20px 0;
-            color: #6e6e73;
+            padding: 22px 0;
+            color: #7c766c;
             text-align: center;
         }
     </style>
@@ -170,7 +170,7 @@
             <div id="date">00/00</div>
             <div id="time">00:00</div>
         </div>
-        <div id="meta">Syncing environment...</div>
+        <div id="meta">Analyzing environment...</div>
     </div>
 
     <!-- STOP GROUP BANNER -->
@@ -222,6 +222,9 @@
         var currentRealFeel = "--";
         var currentHumidity = "--";
         var currentIconStr = "—";
+        
+        var tomorrowRealFeelRange = "-- - --";
+        var tomorrowTempIconStr = "—";
         var tomorrowRainPSR = "Calculating";
         var tomorrowIconStr = "—";
 
@@ -249,13 +252,13 @@
         // Beautiful Minimal Unicode Weather Mapping
         function getWeatherIcon(iconId) {
             var id = parseInt(iconId);
-            if ([50, 51, 52, 60, 61].indexOf(id) !== -1) return "☀️"; // Clear / Sunny
-            if ([53, 54, 62, 63].indexOf(id) !== -1) return "⛅"; // Dusk / Sunny Intervals
-            if ([57, 58, 59, 64, 65].indexOf(id) !== -1) return "☁️"; // Overcast / Cloudy
-            if ([ Integral=true ,66, 67, 68, 69].indexOf(id) !== -1) return "🌙"; // Clear Night
-            if ([70, 71, 72, 73, 74, 75, 76, 77].indexOf(id) !== -1) return "🌧️"; // Rain / Showers
-            if ([80, 81, 82, 83, 84, 85].indexOf(id) !== -1) return "⛈️"; // Thunderstorms
-            if ([90, 91, 92, 93].indexOf(id) !== -1) return "❄️"; // Cold / Frost / Snow
+            if ([50, 51, 52, 60, 61].indexOf(id) !== -1) return "☀️"; 
+            if ([53, 54, 62, 63].indexOf(id) !== -1) return "⛅"; 
+            if ([57, 58, 59, 64, 65].indexOf(id) !== -1) return "☁️"; 
+            if ([66, 67, 68, 69].indexOf(id) !== -1) return "🌙"; 
+            if ([70, 71, 72, 73, 74, 75, 76, 77].indexOf(id) !== -1) return "🌧️"; 
+            if ([80, 81, 82, 83, 84, 85].indexOf(id) !== -1) return "⛈️"; 
+            if ([90, 91, 92, 93].indexOf(id) !== -1) return "❄️"; 
             return "✨";
         }
 
@@ -271,7 +274,8 @@
 
         function renderWeatherDisplay() {
             document.getElementById("meta").innerHTML = 
-                "<div class='weather-line'>RealFeel " + currentRealFeel + "° &bull; Humid " + currentHumidity + "% <span class='weather-icon'>" + currentIconStr + "</span></div>" + 
+                "<div class='weather-line'>Now &bull; RealFeel " + currentRealFeel + "° &bull; Humid " + currentHumidity + "% <span class='weather-icon'>" + currentIconStr + "</span></div>" + 
+                "<div class='weather-line'>Tomorrow RealFeel &bull; " + tomorrowRealFeelRange + "°C <span class='weather-icon'>" + tomorrowTempIconStr + "</span></div>" +
                 "<div class='weather-line'>Tomorrow Rain Forecast &bull; " + tomorrowRainPSR + " <span class='weather-icon'>" + tomorrowIconStr + "</span></div>";
         }
 
@@ -306,8 +310,8 @@
             xhr.send();
         }
 
-        // 3. Rain Precipitation Forecast Engine
-        function fetchRainForecast() {
+        // 3. Forecast Engine (Processes Tomorrow's RealFeel range and Rain probability)
+        function fetchForecast() {
             var url = USE_PROXY ? (PROXY + encodeURIComponent(HKO_FORECAST_API)) : HKO_FORECAST_API;
             var xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);
@@ -316,7 +320,32 @@
                     try {
                         var data = JSON.parse(xhr.responseText);
                         if (data.weatherForecast && data.weatherForecast.length > 1) {
-                            var psrData = getForecastPSRNameAndIcon(data.weatherForecast[1].PSR);
+                            var tomorrowData = data.weatherForecast[1];
+                            
+                            // Forecasted Min/Max Temperatures
+                            var minTemp = tomorrowData.forecastMintemp.value;
+                            var maxTemp = tomorrowData.forecastMaxtemp.value;
+                            
+                            // Forecasted Humidity range endpoints
+                            var minRh = tomorrowData.forecastMinrh.value;
+                            var maxRh = tomorrowData.forecastMaxrh.value;
+                            
+                            // Evaluate projected RealFeel range combinations
+                            var realFeelMin = calculateRealFeel(minTemp, maxRh); 
+                            var realFeelMax = calculateRealFeel(maxTemp, minRh);
+                            tomorrowRealFeelRange = realFeelMin + " - " + realFeelMax;
+
+                            // Assign predictive icon to the temperature array block using the forecast forecastIcon token
+                            if (tomorrowData.ForecastIcon) {
+                                tomorrowTempIconStr = getWeatherIcon(tomorrowData.ForecastIcon);
+                            } else if (tomorrowData.forecastIcon) {
+                                tomorrowTempIconStr = getWeatherIcon(tomorrowData.forecastIcon);
+                            } else {
+                                tomorrowTempIconStr = "🌡️";
+                            }
+
+                            // Process Rain Probability
+                            var psrData = getForecastPSRNameAndIcon(tomorrowData.PSR);
                             tomorrowRainPSR = psrData.text;
                             tomorrowIconStr = psrData.icon;
                         }
@@ -413,14 +442,14 @@
         // Initial Executions
         updateClock();
         fetchWeather();
-        fetchRainForecast();
+        fetchForecast();
         fetchRouteETA(API_268X, "268X", "eta-rows-268x");
         fetchRouteETA(API_68X, "68X", "eta-rows-68x");
 
         // Execution Loops
         setInterval(masterRefresh, 1000 * 60);     
         setInterval(fetchWeather, 1000 * 60 * 15); 
-        setInterval(fetchRainForecast, 1000 * 60 * 60);
+        setInterval(fetchForecast, 1000 * 60 * 60);
     </script>
 </body>
 </html>
