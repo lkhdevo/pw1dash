@@ -23,7 +23,7 @@
         #photo-panel {
             width: 50%;
             height: 100vh;
-            background-image: url('https://ibb.co/5hyHtzZ1');
+            background-image: url('https://i.ibb.co/3mqZG8KT/DSC02191.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -153,26 +153,12 @@
         .eta-container {
             text-align: right;
             width: 80%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .actual-time {
             font-size: 22px; 
             font-weight: 400;
             color: #1a1a1a;
-        }
-
-        .relative-mins {
-            font-size: 18px; 
-            font-weight: 500;
-            color: #1a1a1a;
-        }
-        
-        .arriving-soon {
-            color: #7c766c;
-            font-style: italic;
         }
 
         .status-msg {
@@ -398,10 +384,6 @@
                                 
                                 if (item.route === routeTarget && item.eta) {
                                     var etaTime = new Date(item.eta);
-                                    var baseTime = new Date(item.data_timestamp);
-                                    
-                                    var diffMs = etaTime - baseTime;
-                                    var diffMins = Math.max(0, Math.floor(diffMs / 1000 / 60));
                                     
                                     var etaHours = etaTime.getHours();
                                     var etaMins = etaTime.getMinutes();
@@ -412,7 +394,6 @@
                                     if (!seenClocks[clockString]) {
                                         seenClocks[clockString] = true;
                                         sortedEtas.push({
-                                            mins: diffMins,
                                             clock: clockString,
                                             seq: item.eta_seq
                                         });
@@ -428,15 +409,11 @@
                             } else {
                                 for (var j = 0; j < sortedEtas.length; j++) {
                                     var bus = sortedEtas[j];
-                                    var isArriving = bus.mins <= 1;
-                                    var timeDisplay = isArriving ? "Arriving" : bus.mins + " min";
-                                    var arrivingClass = isArriving ? "arriving-soon" : "";
                                     
                                     html += "<tr>" +
                                                 "<td class='seq'>NO. 0" + (j + 1) + "</td>" +
                                                 "<td class='eta-container'>" +
                                                     "<div class='actual-time'>" + bus.clock + "</div>" +
-                                                    "<div class='relative-mins " + arrivingClass + "'>" + timeDisplay + "</div>" +
                                                 "</td>" +
                                             "</tr>";
                                 }
