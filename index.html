@@ -10,11 +10,32 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f0ea; /* Premium warm beige / linen */
             color: #1a1a1a; /* Soft charcoal black */
-            margin: 40px auto;
+            margin: 0;
             padding: 0;
-            max-width: 650px;
             letter-spacing: -0.01em;
             -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Split Screen Layout Optimized for iPad 3 Landscape (1024x768) */
+        #photo-panel {
+            width: 50%;
+            height: 100vh;
+            background-image: url('https://ibb.co/5hyHtzZ1');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #dashboard-panel {
+            width: 50%;
+            height: 100vh;
+            box-sizing: border-box;
+            padding: 40px;
+            overflow-y: auto;
+            border-left: 1px solid #d9d4cc;
         }
 
         #header {
@@ -122,7 +143,7 @@
         }
 
         .seq {
-            width: 15%;
+            width: 20%;
             font-size: 14px; 
             font-weight: 500;
             color: #a6a095;
@@ -131,7 +152,7 @@
 
         .eta-container {
             text-align: right;
-            width: 85%;
+            width: 80%;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -165,45 +186,51 @@
 </head>
 <body>
 
-    <div id="header">
-        <div id="time-container">
-            <div id="date">00/00</div>
-            <div id="time">00:00</div>
-        </div>
-        <div id="meta">Analyzing environment...</div>
-    </div>
+    <!-- LEFT PANEL: PHOTO -->
+    <div id="photo-panel"></div>
 
-    <!-- STOP GROUP BANNER -->
-    <div class="stop-banner">元朗喜利徑 &bull; Hi Lee Path</div>
-    
-    <!-- 1st TABLE: ROUTE 268X -->
-    <div class="route-section">
-        <div class="route-header">
-            <div class="route-title">Route 268X</div>
-            <div class="destination">To Jordan</div>
+    <!-- RIGHT PANEL: BUS DASHBOARD -->
+    <div id="dashboard-panel">
+        <div id="header">
+            <div id="time-container">
+                <div id="date">00/00</div>
+                <div id="time">00:00</div>
+            </div>
+            <div id="meta">Analyzing environment...</div>
         </div>
-        <table>
-            <tbody id="eta-rows-268x">
-                <tr>
-                    <td colspan="2" class="status-msg">Connecting to schedule services...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 
-    <!-- 2nd TABLE: ROUTE 68X -->
-    <div class="route-section">
-        <div class="route-header">
-            <div class="route-title">Route 68X</div>
-            <div class="destination">To Mong Kok</div>
+        <!-- STOP GROUP BANNER -->
+        <div class="stop-banner">元朗喜利徑 &bull; Hi Lee Path</div>
+        
+        <!-- 1st TABLE: ROUTE 268X -->
+        <div class="route-section">
+            <div class="route-header">
+                <div class="route-title">Route 268X</div>
+                <div class="destination">To Jordan</div>
+            </div>
+            <table>
+                <tbody id="eta-rows-268x">
+                    <tr>
+                        <td colspan="2" class="status-msg">Connecting to schedule services...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <table>
-            <tbody id="eta-rows-68x">
-                <tr>
-                    <td colspan="2" class="status-msg">Connecting to schedule services...</td>
-                </tr>
-            </tbody>
-        </table>
+
+        <!-- 2nd TABLE: ROUTE 68X -->
+        <div class="route-section">
+            <div class="route-header">
+                <div class="route-title">Route 68X</div>
+                <div class="destination">To Mong Kok</div>
+            </div>
+            <table>
+                <tbody id="eta-rows-68x">
+                    <tr>
+                        <td colspan="2" class="status-msg">Connecting to schedule services...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
