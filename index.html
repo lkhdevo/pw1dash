@@ -322,20 +322,15 @@
                         if (data.weatherForecast && data.weatherForecast.length > 1) {
                             var tomorrowData = data.weatherForecast[1];
                             
-                            // Forecasted Min/Max Temperatures
                             var minTemp = tomorrowData.forecastMintemp.value;
                             var maxTemp = tomorrowData.forecastMaxtemp.value;
-                            
-                            // Forecasted Humidity range endpoints
                             var minRh = tomorrowData.forecastMinrh.value;
                             var maxRh = tomorrowData.forecastMaxrh.value;
                             
-                            // Evaluate projected RealFeel range combinations
                             var realFeelMin = calculateRealFeel(minTemp, maxRh); 
                             var realFeelMax = calculateRealFeel(maxTemp, minRh);
                             tomorrowRealFeelRange = realFeelMin + " - " + realFeelMax;
 
-                            // Assign predictive icon to the temperature array block using the forecast forecastIcon token
                             if (tomorrowData.ForecastIcon) {
                                 tomorrowTempIconStr = getWeatherIcon(tomorrowData.ForecastIcon);
                             } else if (tomorrowData.forecastIcon) {
@@ -344,7 +339,6 @@
                                 tomorrowTempIconStr = "🌡️";
                             }
 
-                            // Process Rain Probability
                             var psrData = getForecastPSRNameAndIcon(tomorrowData.PSR);
                             tomorrowRainPSR = psrData.text;
                             tomorrowIconStr = psrData.icon;
@@ -447,9 +441,9 @@
         fetchRouteETA(API_68X, "68X", "eta-rows-68x");
 
         // Execution Loops
-        setInterval(masterRefresh, 1000 * 60);     
-        setInterval(fetchWeather, 1000 * 60 * 15); 
-        setInterval(fetchForecast, 1000 * 60 * 60);
+        setInterval(masterRefresh, 1000 * 30);       // Bus data & system clock now update every 30 seconds
+        setInterval(fetchWeather, 1000 * 60 * 15);    // Weather current data updates every 15 minutes
+        setInterval(fetchForecast, 1000 * 60 * 60);   // Daily outlook forecast updates every hour
     </script>
 </body>
 </html>
