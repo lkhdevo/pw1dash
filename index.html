@@ -1,83 +1,217 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>KMB Bus ETA</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMB Bus Dashboard — Elegant Dark Edition</title>
     <style>
-        /* Primitive CSS safe for Kindle Paperwhite 1 NetFront Engine */
+        /* Modern, Elegant Dark Design System */
         body {
-            font-family: monospace;
-            background-color: #ffffff;
-            color: #000000;
-            margin: 5px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d0e12; /* Premium deep midnight slate */
+            color: #f5f5f7; /* Soft ivory white */
+            margin: 40px auto;
             padding: 0;
+            max-width: 600px;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
         }
-        .stop-banner {
-            background-color: #000000;
+
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid #22252e;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        #time-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        #time {
+            font-size: 48px;
+            font-weight: 300; /* Ultra light elegant weight */
+            letter-spacing: -0.03em;
             color: #ffffff;
-            padding: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: center;
+            line-height: 1;
         }
-        .route-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-top: 15px;
-            margin-bottom: 2px;
-            text-align: center;
+
+        #date {
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6e6e73;
         }
-        .destination {
+
+        #meta {
+            font-size: 13px;
+            font-weight: 400;
+            color: #a1a1a6;
+            text-align: right;
+            line-height: 1.7;
+        }
+
+        .weather-line {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .weather-icon {
             font-size: 14px;
-            margin-bottom: 10px;
-            color: #444444;
-            text-align: center;
+            color: #ffffff;
         }
+
+        .stop-banner {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #6e6e73;
+            margin-bottom: 35px;
+            border-left: 2px solid #f5f5f7;
+            padding-left: 12px;
+        }
+
+        .route-section {
+            margin-bottom: 45px;
+        }
+
+        .route-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid #22252e;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .route-title {
+            font-size: 24px;
+            font-weight: 400;
+            font-family: "Didot", "Bodoni MT", "Cinzel", serif; 
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        .destination {
+            font-size: 13px;
+            font-weight: 400;
+            color: #a1a1a6;
+        }
+
         table {
             width: 100%;
-            margin-bottom: 20px;
+            border-collapse: collapse;
         }
+
         td {
-            padding: 10px 2px;
-            font-weight: bold;
-            font-size: 20px;
-            border-bottom: 1px dashed #000000;
-            text-align: center;
+            padding: 16px 0;
+            vertical-align: middle;
+            border-bottom: 1px solid #16181f;
         }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .seq {
+            width: 15%;
+            font-size: 12px;
+            font-weight: 500;
+            color: #424245;
+            letter-spacing: 0.05em;
+        }
+
+        .eta-container {
+            text-align: right;
+            width: 85%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .actual-time {
+            font-size: 18px;
+            font-weight: 400;
+            color: #f5f5f7;
+        }
+
+        .relative-mins {
+            font-size: 15px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+        
+        .arriving-soon {
+            color: #8e8e93;
+            font-style: italic;
+        }
+
         .status-msg {
             font-size: 14px;
-            color: #555555;
+            font-style: italic;
+            padding: 20px 0;
+            color: #6e6e73;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
+    <div id="header">
+        <div id="time-container">
+            <div id="date">00/00</div>
+            <div id="time">00:00</div>
+        </div>
+        <div id="meta">Syncing environment...</div>
+    </div>
+
     <!-- STOP GROUP BANNER -->
-    <div class="stop-banner">元朗喜利徑 Hi Lee Path (YL367)</div>
+    <div class="stop-banner">元朗喜利徑 &bull; Hi Lee Path</div>
     
     <!-- 1st TABLE: ROUTE 268X -->
-    <div class="route-title">ROUTE 268X</div>
-    <div class="destination">往 佐敦 (西九龍站) / To Jordan</div>
-    <table cellpadding="0" cellspacing="0">
-        <tbody id="eta-rows-268x">
-            <tr><td class="status-msg">Loading 268X...</td></tr>
-        </tbody>
-    </table>
+    <div class="route-section">
+        <div class="route-header">
+            <div class="route-title">Route 268X</div>
+            <div class="destination">To Jordan</div>
+        </div>
+        <table>
+            <tbody id="eta-rows-268x">
+                <tr>
+                    <td colspan="2" class="status-msg">Connecting to schedule services...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <!-- 2nd TABLE: ROUTE 68X -->
-    <div class="route-title">ROUTE 68X</div>
-    <div class="destination">往 旺角 (柏景灣) / To Mong Kok (Park Avenue)</div>
-    <table cellpadding="0" cellspacing="0">
-        <tbody id="eta-rows-68x">
-            <tr><td class="status-msg">Loading 68X...</td></tr>
-        </tbody>
-    </table>
+    <div class="route-section">
+        <div class="route-header">
+            <div class="route-title">Route 68X</div>
+            <div class="destination">To Mong Kok</div>
+        </div>
+        <table>
+            <tbody id="eta-rows-68x">
+                <tr>
+                    <td colspan="2" class="status-msg">Connecting to schedule services...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-    <script type="text/javascript">
-        // Basic variables compatible with older JS engines
+    <script>
+        // CONFIGURATION: 
         var USE_PROXY = false; 
         var PROXY = "https://corsproxy.io/?";
+        var HKO_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
+        var HKO_FORECAST_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en";
 
         var STOP_268X = "221A18C37331E6FD";
         var STOP_68X  = "48FBCEF0B05599F8";
@@ -85,70 +219,185 @@
         var API_268X = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + STOP_268X;
         var API_68X  = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + STOP_68X;
 
-        // Legacy AJAX engine without modern JSON parsing to avoid native Kindle browser crashes
-        function fetchRouteETA(apiEndpoint, routeTarget, targetElementId) {
-            var url = USE_PROXY ? (PROXY + escape(apiEndpoint)) : apiEndpoint;
+        var currentRealFeel = "--";
+        var currentHumidity = "--";
+        var currentIconStr = "—";
+        var tomorrowRainPSR = "Calculating";
+        var tomorrowIconStr = "—";
+
+        // 1. Clock and Date Engine
+        function updateClock() {
+            var now = new Date();
+            var hrs = now.getHours();
+            var mins = now.getMinutes();
+            if (hrs < 10) hrs = "0" + hrs;
+            if (mins < 10) mins = "0" + mins;
+            document.getElementById("time").innerHTML = hrs + ":" + mins;
+
+            var day = now.getDate();
+            var month = now.toLocaleString('en-US', { month: 'short' });
+            document.getElementById("date").innerHTML = month + " " + day;
+        }
+
+        // RealFeel / Humidex Approximation formula calculation
+        function calculateRealFeel(temp, rh) {
+            var e = (6.11 * Math.exp(5417.7530 * (1/273.16 - 1/(273.15 + temp))));
+            var h = temp + (0.5555 * (e - 10.0));
+            return Math.round(h);
+        }
+
+        // Beautiful Minimal Unicode Weather Mapping
+        function getWeatherIcon(iconId) {
+            var id = parseInt(iconId);
+            if ([50, 51, 52, 60, 61].indexOf(id) !== -1) return "☀️"; // Clear / Sunny
+            if ([53, 54, 62, 63].indexOf(id) !== -1) return "⛅"; // Dusk / Sunny Intervals
+            if ([57, 58, 59, 64, 65].indexOf(id) !== -1) return "☁️"; // Overcast / Cloudy
+            if ([ Integral=true ,66, 67, 68, 69].indexOf(id) !== -1) return "🌙"; // Clear Night
+            if ([70, 71, 72, 73, 74, 75, 76, 77].indexOf(id) !== -1) return "🌧️"; // Rain / Showers
+            if ([80, 81, 82, 83, 84, 85].indexOf(id) !== -1) return "⛈️"; // Thunderstorms
+            if ([90, 91, 92, 93].indexOf(id) !== -1) return "❄️"; // Cold / Frost / Snow
+            return "✨";
+        }
+
+        function getForecastPSRNameAndIcon(psrString) {
+            var psr = psrString.toLowerCase();
+            if (psr === "low") return { text: "Low", icon: "☀️" };
+            if (psr === "medium low") return { text: "Medium Low", icon: "⛅" };
+            if (psr === "medium") return { text: "Medium", icon: "🌦️" };
+            if (psr === "medium high") return { text: "Medium High", icon: "🌧️" };
+            if (psr === "high") return { text: "High", icon: "⛈️" };
+            return { text: psrString, icon: "🔮" };
+        }
+
+        function renderWeatherDisplay() {
+            document.getElementById("meta").innerHTML = 
+                "<div class='weather-line'>RealFeel " + currentRealFeel + "° &bull; Humid " + currentHumidity + "% <span class='weather-icon'>" + currentIconStr + "</span></div>" + 
+                "<div class='weather-line'>Tomorrow Rain Forecast &bull; " + tomorrowRainPSR + " <span class='weather-icon'>" + tomorrowIconStr + "</span></div>";
+        }
+
+        // 2. Weather Engine
+        function fetchWeather() {
+            var url = USE_PROXY ? (PROXY + encodeURIComponent(HKO_API)) : HKO_API;
             var xhr = new XMLHttpRequest();
-            
             xhr.open("GET", url, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        var temp = data.temperature.data[0].value; 
+                        for (var i = 0; i < data.temperature.data.length; i++) {
+                            if (data.temperature.data[i].place === "Yuen Long") {
+                                temp = data.temperature.data[i].value;
+                                break;
+                            }
+                        }
+                        currentHumidity = data.humidity.data[0].value;
+                        currentRealFeel = calculateRealFeel(temp, currentHumidity);
+                        
+                        if (data.icon && data.icon.length > 0) {
+                            currentIconStr = getWeatherIcon(data.icon[0]);
+                        }
+                        renderWeatherDisplay();
+                    } catch (e) {
+                        renderWeatherDisplay();
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // 3. Rain Precipitation Forecast Engine
+        function fetchRainForecast() {
+            var url = USE_PROXY ? (PROXY + encodeURIComponent(HKO_FORECAST_API)) : HKO_FORECAST_API;
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.weatherForecast && data.weatherForecast.length > 1) {
+                            var psrData = getForecastPSRNameAndIcon(data.weatherForecast[1].PSR);
+                            tomorrowRainPSR = psrData.text;
+                            tomorrowIconStr = psrData.icon;
+                        }
+                        renderWeatherDisplay();
+                    } catch (e) {
+                        renderWeatherDisplay();
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function fetchRouteETA(apiEndpoint, routeTarget, targetElementId) {
+            var url = USE_PROXY ? (PROXY + encodeURIComponent(apiEndpoint)) : apiEndpoint;
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        var rawText = xhr.responseText;
-                        var html = "";
-                        var matchCount = 0;
-                        
-                        // Fallback primitive parser: Split text by data blocks manually
-                        var blocks = rawText.split('{"co"');
-                        
-                        for (var i = 1; i < blocks.length; i++) {
-                            var block = blocks[i];
-                            
-                            // Check if this block belongs to our target route
-                            if (block.indexOf('"route":"' + routeTarget + '"') !== -1) {
-                                // Extract ETA timestamp value manually via primitive string parsing
-                                var etaIdx = block.indexOf('"eta":"');
-                                if (etaIdx !== -1) {
-                                    var etaStr = block.substring(etaIdx + 7, etaIdx + 26); // Grab "YYYY-MM-DDTHH:MM:SS"
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            var list = response.data;
+                            var sortedEtas = [];
+                            var seenClocks = {}; 
+
+                            for (var i = 0; i < list.length; i++) {
+                                var item = list[i];
+                                
+                                if (item.route === routeTarget && item.eta) {
+                                    var etaTime = new Date(item.eta);
+                                    var baseTime = new Date(item.data_timestamp);
                                     
-                                    // Extract Timestamp value manually
-                                    var stampIdx = block.indexOf('"data_timestamp":"');
-                                    var stampStr = "";
-                                    if (stampIdx !== -1) {
-                                        stampStr = block.substring(stampIdx + 18, stampIdx + 37);
-                                    }
+                                    var diffMs = etaTime - baseTime;
+                                    var diffMins = Math.max(0, Math.floor(diffMs / 1000 / 60));
                                     
-                                    if (etaStr && etaStr.indexOf('null') === -1 && etaStr.length >= 16) {
-                                        // Parse out Clock time strings safely via index cuts
-                                        var clockString = etaStr.substring(11, 16); // "HH:MM"
-                                        
-                                        // Simple rough estimation of minutes to remain compliant with legacy Date formats
-                                        var etaH = parseInt(etaStr.substring(11, 13), 10);
-                                        var etaM = parseInt(etaStr.substring(14, 16), 10);
-                                        
-                                        var curH = new Date().getHours();
-                                        var curM = new Date().getMinutes();
-                                        
-                                        var diffMins = ((etaH * 60) + etaM) - ((curH * 60) + curM);
-                                        if (diffMins < 0) diffMins = 0;
-                                        
-                                        var timeDisplay = diffMins <= 1 ? "Arriving / 到站中" : diffMins + " mins";
-                                        
-                                        html += "<tr><td>" + clockString + " (" + timeDisplay + ")</td></tr>";
-                                        matchCount++;
+                                    var etaHours = etaTime.getHours();
+                                    var etaMins = etaTime.getMinutes();
+                                    if (etaHours < 10) etaHours = "0" + etaHours;
+                                    if (etaMins < 10) etaMins = "0" + etaMins;
+                                    var clockString = etaHours + ":" + etaMins;
+                                    
+                                    if (!seenClocks[clockString]) {
+                                        seenClocks[clockString] = true;
+                                        sortedEtas.push({
+                                            mins: diffMins,
+                                            clock: clockString,
+                                            seq: item.eta_seq
+                                        });
                                     }
                                 }
                             }
-                            // Limit records to top 3 to accommodate minimal screen heights on e-readers
-                            if (matchCount >= 3) break;
+
+                            sortedEtas.sort(function(a, b) { return a.seq - b.seq; });
+
+                            var html = "";
+                            if (sortedEtas.length === 0) {
+                                html = "<tr><td class='status-msg'>No scheduled runs remaining today.</td></tr>";
+                            } else {
+                                for (var j = 0; j < sortedEtas.length; j++) {
+                                    var bus = sortedEtas[j];
+                                    var isArriving = bus.mins <= 1;
+                                    var timeDisplay = isArriving ? "Arriving" : bus.mins + " min";
+                                    var arrivingClass = isArriving ? "arriving-soon" : "";
+                                    
+                                    html += "<tr>" +
+                                                "<td class='seq'>NO. 0" + (j + 1) + "</td>" +
+                                                "<td class='eta-container'>" +
+                                                    "<div class='actual-time'>" + bus.clock + "</div>" +
+                                                    "<div class='relative-mins " + arrivingClass + "'>" + timeDisplay + "</div>" +
+                                                "</td>" +
+                                            "</tr>";
+                                }
+                            }
+                            document.getElementById(targetElementId).innerHTML = html;
+
+                        } catch (err) {
+                            document.getElementById(targetElementId).innerHTML = "<tr><td class='status-msg'>Data formatting error.</td></tr>";
                         }
-                        
-                        if (html === "") {
-                            html = "<tr><td class='status-msg'>No runs scheduled.</td></tr>";
-                        }
-                        document.getElementById(targetElementId).innerHTML = html;
                     } else {
-                        document.getElementById(targetElementId).innerHTML = "<tr><td class='status-msg'>Error: " + xhr.status + "</td></tr>";
+                        document.getElementById(targetElementId).innerHTML = "<tr><td class='status-msg'>Service unavailable (" + xhr.status + ")</td></tr>";
                     }
                 }
             };
@@ -156,15 +405,22 @@
         }
 
         function masterRefresh() {
+            updateClock();
             fetchRouteETA(API_268X, "268X", "eta-rows-268x");
             fetchRouteETA(API_68X, "68X", "eta-rows-68x");
         }
 
-        // Trigger loading sequentially
-        masterRefresh();
+        // Initial Executions
+        updateClock();
+        fetchWeather();
+        fetchRainForecast();
+        fetchRouteETA(API_268X, "268X", "eta-rows-268x");
+        fetchRouteETA(API_68X, "68X", "eta-rows-68x");
 
-        // 1-minute auto-refresh cycle loop
+        // Execution Loops
         setInterval(masterRefresh, 1000 * 60);     
+        setInterval(fetchWeather, 1000 * 60 * 15); 
+        setInterval(fetchRainForecast, 1000 * 60 * 60);
     </script>
 </body>
 </html>
