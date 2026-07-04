@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>268X ETA - Hi Lee Path</title>
+    <title>KMB Bus ETA Dashboard</title>
     <style>
         /* Optimised for both Kindle E-ink and Legacy Screens */
         body {
@@ -48,6 +48,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 30px; /* Space between route tables */
         }
         td {
             padding: 12px 5px;
@@ -87,29 +88,43 @@
         <div id="meta">Loading weather...</div>
     </div>
 
-    <div class="stop-banner">元朗喜利徑 Hi Lee Path</div>
+    <!-- STOP GROUP BANNER -->
+    <div class="stop-banner">元朗喜利徑 Hi Lee Path (YL367)</div>
     
+    <!-- 1st TABLE: ROUTE 268X (TOP) -->
     <div class="route-title">ROUTE 268X</div>
     <div class="destination">往 佐敦 (西九龍站) / To Jordan</div>
-
     <table>
-        <tbody id="eta-rows">
+        <tbody id="eta-rows-268x">
             <tr>
-                <td colspan="2" class="status-msg">Connecting to KMB node...</td>
+                <td colspan="2" class="status-msg">Connecting to KMB node (268X)...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 2nd TABLE: ROUTE 68X (BOTTOM) -->
+    <div class="route-title">ROUTE 68X</div>
+    <div class="destination">往 旺角 (柏景灣) / To Mong Kok (Park Avenue)</div>
+    <table>
+        <tbody id="eta-rows-68x">
+            <tr>
+                <td colspan="2" class="status-msg">Connecting to KMB node (68X)...</td>
             </tr>
         </tbody>
     </table>
 
     <script>
         // CONFIGURATION: 
-        // Set to true if deploying to Kindle Paperwhite (uses proxy to fix SSL bugs)
-        // Set to false for iPad 3 or modern PC testing (queries direct)
         var USE_PROXY = false; 
-
-        var REAL_STOP_ID = "221A18C37331E6FD";
-        var BASE_API = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + REAL_STOP_ID;
-        var HKO_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
         var PROXY = "https://corsproxy.io/?";
+        var HKO_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
+
+        // Separate Stop Endpoints for explicit processing
+        var STOP_268X = "221A18C37331E6FD";
+        var STOP_68X  = "48FBCEF0B05599F8";
+
+        var API_268X = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + STOP_268X;
+        var API_68X  = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + STOP_68X;
 
         // 1. Clock Engine
         function updateClock() {
@@ -147,9 +162,9 @@
             xhr.send();
         }
 
-        // 3. Isolated 268X ETA Engine
-        function fetch268X() {
-            var url = USE_PROXY ? (PROXY + encodeURIComponent(BASE_API)) : BASE_API;
+        // Helper framework to fetch, process, filter, de-duplicate and display a route
+        function fetchRouteETA(apiEndpoint, routeTarget, targetElementId) {
+            var url = USE_PROXY ? (PROXY + encodeURIComponent(apiEndpoint)) : apiEndpoint;
             var xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);
             
@@ -160,29 +175,33 @@
                             var response = JSON.parse(xhr.responseText);
                             var list = response.data;
                             var sortedEtas = [];
+                            var seenClocks = {}; 
 
                             for (var i = 0; i < list.length; i++) {
                                 var item = list[i];
                                 
-                                if (item.route === "268X" && item.eta) {
+                                if (item.route === routeTarget && item.eta) {
                                     var etaTime = new Date(item.eta);
                                     var baseTime = new Date(item.data_timestamp);
                                     
                                     var diffMs = etaTime - baseTime;
                                     var diffMins = Math.max(0, Math.floor(diffMs / 1000 / 60));
                                     
-                                    // Extract absolute clock hours and minutes for arrival time
                                     var etaHours = etaTime.getHours();
                                     var etaMins = etaTime.getMinutes();
                                     if (etaHours < 10) etaHours = "0" + etaHours;
                                     if (etaMins < 10) etaMins = "0" + etaMins;
                                     var clockString = etaHours + ":" + etaMins;
                                     
-                                    sortedEtas.push({
-                                        mins: diffMins,
-                                        clock: clockString,
-                                        seq: item.eta_seq
-                                    });
+                                    // De-duplication check
+                                    if (!seenClocks[clockString]) {
+                                        seenClocks[clockString] = true;
+                                        sortedEtas.push({
+                                            mins: diffMins,
+                                            clock: clockString,
+                                            seq: item.eta_seq
+                                        });
+                                    }
                                 }
                             }
 
@@ -190,14 +209,14 @@
 
                             var html = "";
                             if (sortedEtas.length === 0) {
-                                html = "<tr><td class='status-msg'>No scheduled 268X runs.</td></tr>";
+                                html = "<tr><td class='status-msg'>No scheduled " + routeTarget + " runs.</td></tr>";
                             } else {
                                 for (var j = 0; j < sortedEtas.length; j++) {
                                     var bus = sortedEtas[j];
                                     var timeDisplay = bus.mins <= 1 ? "Arriving / 到站中" : bus.mins + " mins";
                                     
                                     html += "<tr>" +
-                                                "<td class='seq'>[" + bus.seq + "]</td>" +
+                                                "<td class='seq'>[" + (j + 1) + "]</td>" +
                                                 "<td class='eta-container'>" +
                                                     "<div class='actual-time'>" + bus.clock + "</div>" +
                                                     "<div class='relative-mins'>" + timeDisplay + "</div>" +
@@ -205,13 +224,13 @@
                                             "</tr>";
                                 }
                             }
-                            document.getElementById("eta-rows").innerHTML = html;
+                            document.getElementById(targetElementId).innerHTML = html;
 
                         } catch (err) {
-                            document.getElementById("eta-rows").innerHTML = "<tr><td class='status-msg'>Parsing dynamic sequence failure.</td></tr>";
+                            document.getElementById(targetElementId).innerHTML = "<tr><td class='status-msg'>Parsing failure.</td></tr>";
                         }
                     } else {
-                        document.getElementById("eta-rows").innerHTML = "<tr><td class='status-msg'>Network drop. Status: " + xhr.status + "</td></tr>";
+                        document.getElementById(targetElementId).innerHTML = "<tr><td class='status-msg'>Network drop. Status: " + xhr.status + "</td></tr>";
                     }
                 }
             };
@@ -220,13 +239,15 @@
 
         function masterRefresh() {
             updateClock();
-            fetch268X();
+            fetchRouteETA(API_268X, "268X", "eta-rows-268x");
+            fetchRouteETA(API_68X, "68X", "eta-rows-68x");
         }
 
         // Initial Executions
         updateClock();
         fetchWeather();
-        fetch268X();
+        fetchRouteETA(API_268X, "268X", "eta-rows-268x");
+        fetchRouteETA(API_68X, "68X", "eta-rows-68x");
 
         // Execution Loops
         setInterval(masterRefresh, 1000 * 60);     
