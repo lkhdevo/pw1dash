@@ -3,118 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YL366 Stop Profile (Direct API)</title>
+    <title>268X ETA - Hi Lee Path</title>
     <style>
+        /* Optimised for both Kindle E-ink and Legacy Screens */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f4f7;
-            color: #333333;
-            margin: 0;
-            padding: 20px;
+            font-family: "Courier New", Courier, monospace, -apple-system, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 15px;
+            padding: 0;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            padding: 24px;
-            border: 1px solid #e1e1e8;
+        #header {
+            border-bottom: 3px solid #000000;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
         }
-        h2 {
-            margin: 0 0 20px 0;
-            color: #d9381e;
-            font-size: 26px;
-            border-bottom: 2px solid #f4f4f7;
-            padding-bottom: 12px;
+        #time {
+            font-size: 42px;
+            font-weight: bold;
         }
-        .block {
-            margin-bottom: 18px;
+        #meta {
+            font-size: 16px;
+            margin-top: 5px;
         }
-        .label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #8e8e93;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+        .stop-banner {
+            background-color: #000000;
+            color: #ffffff;
+            padding: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
         }
-        .value {
-            font-size: 20px;
-            font-weight: 500;
-            color: #1c1c1e;
-            padding: 6px 0;
+        .route-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 5px;
         }
-        .status {
-            padding: 10px;
-            background-color: #f2f2f7;
-            border-radius: 6px;
-            font-size: 14px;
+        .destination {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #444444;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 12px 5px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 2px dashed #000000;
+        }
+        .seq {
+            width: 20%;
+            color: #666666;
+        }
+        .eta-val {
+            text-align: right;
+            width: 80%;
+        }
+        .status-msg {
+            font-size: 16px;
+            padding: 10px 5px;
             color: #555555;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Bus Stop: YL366</h2>
-        <div id="display-panel">
-            <div class="status">Connecting directly to KMB Gov Servers...</div>
-        </div>
+    <div id="header">
+        <div id="time">00:00</div>
+        <div id="meta">Loading weather...</div>
     </div>
 
-    <script>
-        // Querying KMB directly, completely removing third-party proxies
-        var DIRECT_URL = "https://data.etabus.gov.hk/v1/transport/kmb/stop/YL366";
+    <div class="stop-banner">元朗喜利徑 Hi Lee Path</div>
+    
+    <div class="route-title">ROUTE 268X</div>
+    <div class="destination">往 佐敦 (西九龍站) / To Jordan</div>
 
-        function loadStopData() {
+    <table>
+        <tbody id="eta-rows">
+            <tr>
+                <td colspan="2" class="status-msg">Connecting to KMB node...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        // CONFIGURATION: 
+        // Set to true if deploying to Kindle Paperwhite (uses proxy to fix SSL bugs)
+        // Set to false for iPad 3 or modern PC testing (queries direct)
+        var USE_PROXY = false; 
+
+        var REAL_STOP_ID = "221A18C37331E6FD";
+        var BASE_API = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + REAL_STOP_ID;
+        var HKO_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
+        var PROXY = "https://corsproxy.io/?";
+
+        // 1. Clock Engine
+        function updateClock() {
+            var now = new Date();
+            var hrs = now.getHours();
+            var mins = now.getMinutes();
+            if (hrs < 10) hrs = "0" + hrs;
+            if (mins < 10) mins = "0" + mins;
+            document.getElementById("time").innerHTML = hrs + ":" + mins;
+        }
+
+        // 2. Weather Engine
+        function fetchWeather() {
+            var url = USE_PROXY ? (PROXY + encodeURIComponent(HKO_API)) : HKO_API;
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", DIRECT_URL, true);
-            
+            xhr.open("GET", url, true);
             xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            var response = JSON.parse(xhr.responseText);
-                            var info = response.data;
-                            
-                            var html = 
-                                "<div class='block'>" +
-                                    "<div class='label'>Traditional Chinese Name / 中文名稱</div>" +
-                                    "<div class='value'>" + info.name_tc + "</div>" +
-                                "</div>" +
-                                
-                                "<div class='block'>" +
-                                    "<div class='label'>English Name</div>" +
-                                    "<div class='value'>" + info.name_en + "</div>" +
-                                "</div>" +
-                                
-                                "<div class='block'>" +
-                                    "<div class='label'>Coordinates (Lat, Long)</div>" +
-                                    "<div class='value'>" + info.lat + ", " + info.long + "</div>" +
-                                "</div>" +
-                                
-                                "<div class='block'>" +
-                                    "<div class='label'>Data Updated At</div>" +
-                                    "<div class='value' style='font-size:15px; color:#666;'>" + info.data_timestamp.split('T')[0] + "</div>" +
-                                "</div>";
-                                
-                            document.getElementById("display-panel").innerHTML = html;
-                        } catch (err) {
-                            document.getElementById("display-panel").innerHTML = 
-                                "<div class='status' style='color:red;'>Data parsing failed. Format issue.</div>";
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        var temp = data.temperature.data[0].value; 
+                        for (var i = 0; i < data.temperature.data.length; i++) {
+                            if (data.temperature.data[i].place === "Yuen Long") {
+                                temp = data.temperature.data[i].value;
+                                break;
+                            }
                         }
-                    } else {
-                        document.getElementById("display-panel").innerHTML = 
-                            "<div class='status' style='color:red;'>Connection Error. Status Code: " + xhr.status + "<br><br>If status remains 0, iOS 9 cannot read the government's SSL handshake parameters.</div>";
+                        var humidity = data.humidity.data[0].value;
+                        document.getElementById("meta").innerHTML = temp + "°C | Humidity: " + humidity + "%";
+                    } catch (e) {
+                        document.getElementById("meta").innerHTML = "Weather off";
                     }
                 }
             };
             xhr.send();
         }
 
-        // Run immediately
-        loadStopData();
+        // 3. Isolated 268X ETA Engine
+        function fetch268X() {
+            var url = USE_PROXY ? (PROXY + encodeURIComponent(BASE_API)) : BASE_API;
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            var list = response.data;
+                            var sortedEtas = [];
+
+                            for (var i = 0; i < list.length; i++) {
+                                var item = list[i];
+                                
+                                // Explicitly isolate the 268X route object arrays
+                                if (item.route === "268X" && item.eta) {
+                                    var etaTime = new Date(item.eta);
+                                    var baseTime = new Date(item.data_timestamp);
+                                    
+                                    var diffMs = etaTime - baseTime;
+                                    var diffMins = Math.max(0, Math.floor(diffMs / 1000 / 60));
+                                    
+                                    sortedEtas.push({
+                                        mins: diffMins,
+                                        seq: item.eta_seq
+                                    });
+                                }
+                            }
+
+                            // Sort chronologically by sequence layout
+                            sortedEtas.sort(function(a, b) { return a.seq - b.seq; });
+
+                            // Build Layout HTML Output
+                            var html = "";
+                            if (sortedEtas.length === 0) {
+                                html = "<tr><td class='status-msg'>No scheduled 268X runs.</td></tr>";
+                            } else {
+                                for (var j = 0; j < sortedEtas.length; j++) {
+                                    var bus = sortedEtas[j];
+                                    var timeDisplay = bus.mins <= 1 ? "Arriving / 到站中" : bus.mins + " min";
+                                    
+                                    html += "<tr>" +
+                                                "<td class='seq'>[" + bus.seq + "]</td>" +
+                                                "<td class='eta-val'>" + timeDisplay + "</td>" +
+                                            "</tr>";
+                                }
+                            }
+                            document.getElementById("eta-rows").innerHTML = html;
+
+                        } catch (err) {
+                            document.getElementById("eta-rows").innerHTML = "<tr><td class='status-msg'>Parsing dynamic sequence failure.</td></tr>";
+                        }
+                    } else {
+                        document.getElementById("eta-rows").innerHTML = "<tr><td class='status-msg'>Network drop. Status: " + xhr.status + "</td></tr>";
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // Execution Core Loops
+        updateClock();
+        fetchWeather();
+        fetch268X();
+
+        setInterval(updateClock, 1000 * 12);     
+        setInterval(fetch268X, 1000 * 30);     
+        setInterval(fetchWeather, 1000 * 60 * 15);
     </script>
 </body>
 </html>
