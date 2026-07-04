@@ -15,8 +15,14 @@
         }
         #header {
             border-bottom: 3px solid #000000;
-            padding-bottom: 5px;
+            padding-bottom: 10px;
             margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        #left-header {
+            flex: 1;
         }
         #time {
             font-size: 42px;
@@ -25,6 +31,32 @@
         #meta {
             font-size: 16px;
             margin-top: 5px;
+        }
+        /* 3-Day Forecast Grid next to time */
+        #forecast-container {
+            display: flex;
+            gap: 12px;
+            text-align: center;
+        }
+        .forecast-day {
+            border: 2px solid #000000;
+            padding: 6px 8px;
+            min-width: 75px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .fc-date {
+            border-bottom: 1px dashed #000000;
+            padding-bottom: 2px;
+            margin-bottom: 4px;
+        }
+        .fc-temp {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        .fc-rain {
+            font-size: 12px;
+            color: #444444;
         }
         .stop-banner {
             background-color: #000000;
@@ -55,24 +87,21 @@
             font-weight: bold;
             border-bottom: 2px dashed #000000;
             vertical-align: middle;
+            text-align: center; /* Centered layout for the middle of the page */
         }
-        .seq {
-            width: 20%;
-            font-size: 24px;
-            color: #666666;
-        }
-        .eta-container {
-            text-align: right;
-            width: 80%;
+        .eta-row-content {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 15px; /* Spacing between time and arrival countdown */
         }
         .actual-time {
             font-size: 26px;
             font-weight: bold;
-            margin-bottom: 2px;
         }
         .relative-mins {
-            font-size: 16px;
-            color: #555555;
+            font-size: 18px;
+            color: #444444;
         }
         .status-msg {
             font-size: 16px;
@@ -84,8 +113,14 @@
 <body>
 
     <div id="header">
-        <div id="time">00:00</div>
-        <div id="meta">Loading weather...</div>
+        <div id="left-header">
+            <div id="time">00:00</div>
+            <div id="meta">Loading weather...</div>
+        </div>
+        <!-- 3 Day Forecast Layout Widget Beside Time -->
+        <div id="forecast-container">
+            <div class="status-msg" style="font-size:12px; padding:0;">Loading forecast...</div>
+        </div>
     </div>
 
     <!-- STOP GROUP BANNER -->
@@ -97,7 +132,7 @@
     <table>
         <tbody id="eta-rows-268x">
             <tr>
-                <td colspan="2" class="status-msg">Connecting to KMB node (268X)...</td>
+                <td class="status-msg">Connecting to KMB node (268X)...</td>
             </tr>
         </tbody>
     </table>
@@ -108,7 +143,7 @@
     <table>
         <tbody id="eta-rows-68x">
             <tr>
-                <td colspan="2" class="status-msg">Connecting to KMB node (68X)...</td>
+                <td class="status-msg">Connecting to KMB node (68X)...</td>
             </tr>
         </tbody>
     </table>
@@ -118,6 +153,7 @@
         var USE_PROXY = false; 
         var PROXY = "https://corsproxy.io/?";
         var HKO_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
+        var HKO_FND_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en";
 
         // Separate Stop Endpoints for explicit processing
         var STOP_268X = "221A18C37331E6FD";
@@ -156,6 +192,44 @@
                         document.getElementById("meta").innerHTML = temp + "°C | Humidity: " + humidity + "%";
                     } catch (e) {
                         document.getElementById("meta").innerHTML = "Weather off";
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // 3. 3-Day Weather Forecast Engine
+        function fetchForecast() {
+            var url = USE_PROXY ? (PROXY + encodeURIComponent(HKO_FND_API)) : HKO_FND_API;
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        var forecastList = data.weatherForecast;
+                        var html = "";
+                        
+                        // Parse next 3 available days from the API array
+                        for (var i = 0; i < Math.min(3, forecastList.length); i++) {
+                            var dayData = forecastList[i];
+                            var rawDate = dayData.forecastDate;
+                            var dayDisplay = rawDate.substring(6, 8) + "/" + rawDate.substring(4, 6);
+                            var minTemp = dayData.forecastMintemp.value;
+                            var maxTemp = dayData.forecastMaxtemp.value;
+                            
+                            // Extract Probability of Significant Rain string (e.g. "Low", "Medium Low", etc.)
+                            var rainProb = dayData.PSR || "N/A";
+                            
+                            html += "<div class='forecast-day'>" +
+                                        "<div class='fc-date'>" + dayDisplay + "</div>" +
+                                        "<div class='fc-temp'>" + minTemp + "-" + maxTemp + "°C</div>" +
+                                        "<div class='fc-rain'>Rain: " + rainProb + "</div>" +
+                                    "</div>";
+                        }
+                        document.getElementById("forecast-container").innerHTML = html;
+                    } catch (e) {
+                        document.getElementById("forecast-container").innerHTML = "<div class='status-msg'>Forecast error</div>";
                     }
                 }
             };
@@ -215,11 +289,13 @@
                                     var bus = sortedEtas[j];
                                     var timeDisplay = bus.mins <= 1 ? "Arriving / 到站中" : bus.mins + " mins";
                                     
+                                    // Merged layout inside one row and a single centered column 
                                     html += "<tr>" +
-                                                "<td class='seq'>[" + (j + 1) + "]</td>" +
-                                                "<td class='eta-container'>" +
-                                                    "<div class='actual-time'>" + bus.clock + "</div>" +
-                                                    "<div class='relative-mins'>" + timeDisplay + "</div>" +
+                                                "<td>" +
+                                                    "<div class='eta-row-content'>" +
+                                                        "<span class='actual-time'>" + bus.clock + "</span>" +
+                                                        "<span class='relative-mins'>(" + timeDisplay + ")</span>" +
+                                                    "</div>" +
                                                 "</td>" +
                                             "</tr>";
                                 }
@@ -246,12 +322,14 @@
         // Initial Executions
         updateClock();
         fetchWeather();
+        fetchForecast();
         fetchRouteETA(API_268X, "268X", "eta-rows-268x");
         fetchRouteETA(API_68X, "68X", "eta-rows-68x");
 
         // Execution Loops
         setInterval(masterRefresh, 1000 * 60);     
         setInterval(fetchWeather, 1000 * 60 * 15); 
+        setInterval(fetchForecast, 1000 * 60 * 60); // Forecast loop refreshes hourly
     </script>
 </body>
 </html>
