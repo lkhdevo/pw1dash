@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YL366 Stop Information Profile</title>
+    <title>YL366 Stop Profile (Direct API)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -23,7 +23,7 @@
         }
         h2 {
             margin: 0 0 20px 0;
-            color: #d9381e; /* KMB Red tint */
+            color: #d9381e;
             font-size: 26px;
             border-bottom: 2px solid #f4f4f7;
             padding-bottom: 12px;
@@ -59,26 +59,23 @@
     <div class="container">
         <h2>Bus Stop: YL366</h2>
         <div id="display-panel">
-            <div class="status">Connecting to KMB database via AllOrigins proxy...</div>
+            <div class="status">Connecting directly to KMB Gov Servers...</div>
         </div>
     </div>
 
     <script>
-        // AllOrigins proxy provides a highly compatible JSON wrapper that old iOS 9 WebKit accepts
-        var TARGET_URL = "https://data.etabus.gov.hk/v1/transport/kmb/stop/YL366";
-        var PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(TARGET_URL);
+        // Querying KMB directly, completely removing third-party proxies
+        var DIRECT_URL = "https://data.etabus.gov.hk/v1/transport/kmb/stop/YL366";
 
         function loadStopData() {
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", PROXY_URL, true);
+            xhr.open("GET", DIRECT_URL, true);
             
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         try {
-                            // AllOrigins bundles the response inside a string data attribute
-                            var wrapper = JSON.parse(xhr.responseText);
-                            var response = JSON.parse(wrapper.contents);
+                            var response = JSON.parse(xhr.responseText);
                             var info = response.data;
                             
                             var html = 
@@ -98,18 +95,18 @@
                                 "</div>" +
                                 
                                 "<div class='block'>" +
-                                    "<div class='label'>System Last Verified</div>" +
-                                    "<div class='value' style='font-size:15px; color:#666;'>" + info.data_timestamp + "</div>" +
+                                    "<div class='label'>Data Updated At</div>" +
+                                    "<div class='value' style='font-size:15px; color:#666;'>" + info.data_timestamp.split('T')[0] + "</div>" +
                                 "</div>";
                                 
                             document.getElementById("display-panel").innerHTML = html;
                         } catch (err) {
                             document.getElementById("display-panel").innerHTML = 
-                                "<div class='status' style='color:red;'>Data parsing failed. The API structure format may have updated.</div>";
+                                "<div class='status' style='color:red;'>Data parsing failed. Format issue.</div>";
                         }
                     } else {
                         document.getElementById("display-panel").innerHTML = 
-                            "<div class='status' style='color:red;'>Unable to pull data. Gateway Status: " + xhr.status + "</div>";
+                            "<div class='status' style='color:red;'>Connection Error. Status Code: " + xhr.status + "<br><br>If status remains 0, iOS 9 cannot read the government's SSL handshake parameters.</div>";
                     }
                 }
             };
