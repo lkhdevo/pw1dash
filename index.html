@@ -1,89 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bus ETA Dashboard</title>
-    <style>
-        /* Optimised for Kindle E-ink: Monochrome, high contrast, no animations */
-        body {
-            font-family: "Courier New", Courier, monospace, Arial, sans-serif;
-            background-color: #ffffff;
-            color: #000000;
-            margin: 10px;
-            padding: 0;
-        }
-        #header {
-            border-bottom: 3px solid #000000;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-        }
-        #time {
-            font-size: 38px;
-            font-weight: bold;
-        }
-        #meta {
-            font-size: 16px;
-            margin-top: 5px;
-        }
-        #stop-title {
-            font-size: 20px;
-            font-weight: bold;
-            background-color: #000000;
-            color: #ffffff;
-            padding: 5px;
-            margin-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            text-align: left;
-            padding: 8px 4px;
-            font-size: 18px;
-        }
-        th {
-            border-bottom: 2px solid #000000;
-            font-size: 14px;
-        }
-        td {
-            border-bottom: 1px dashed #666666;
-        }
-        .route {
-            font-weight: bold;
-            font-size: 22px;
-        }
-        .eta-time {
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="header">
-        <div id="time">00:00</div>
-        <div id="meta">Loading weather...</div>
-    </div>
-
-    <div id="stop-title">喜利徑 Hi Lee Path (YL366)</div>
-    
-    <table id="eta-table">
-        <thead>
-            <tr>
-                <th width="20%">Route</th>
-                <th width="45%">Destination</th>
-                <th width="35%">ETA</th>
-            </tr>
-        </thead>
-        <tbody id="eta-rows">
-            <tr>
-                <td colspan="3">Fetching bus data...</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <script>
+<script>
         // Using an open proxy to circumvent CORS restrictions and Kindle SSL handshake failures
         var PROXY = "https://corsproxy.io/?";
         var KMB_API = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/YL366";
@@ -107,7 +22,6 @@
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     try {
                         var data = JSON.parse(xhr.responseText);
-                        // Get Yuen Long temperature if available, otherwise use default headline temp
                         var temp = data.temperature.data[0].value; 
                         for (var i = 0; i < data.temperature.data.length; i++) {
                             if (data.temperature.data[i].place === "Yuen Long") {
@@ -135,41 +49,46 @@
                         var response = JSON.parse(xhr.responseText);
                         var list = response.data;
                         
-                        // Filter out empty items or duplicate sequences, and sort by closest time
                         var validEtas = [];
-                        var now = new Date();
 
                         for (var i = 0; i < list.length; i++) {
                             var item = list[i];
+                            
+                            // If there is an explicit ETA timestamp provided by KMB
                             if (item.eta) {
                                 var etaDate = new Date(item.eta);
-                                var diffMs = etaDate - now;
+                                var rtimestamp = new Date(item.data_timestamp);
+                                
+                                // Kindle clock workaround: Use KMB's own timestamp as "now" 
+                                // instead of the Kindle's local clock to calculate remaining minutes.
+                                var diffMs = etaDate - rtimestamp;
                                 var diffMins = Math.max(0, Math.floor(diffMs / 1000 / 60));
                                 
-                                validEtas.push({
-                                    route: item.route,
-                                    dest: item.dest_tc, // Traditional Chinese destination
-                                    mins: diffMins,
-                                    seq: item.eta_seq
-                                });
+                                // Filter duplicate sequences from the same route line
+                                if (item.eta_seq === 1) {
+                                    validEtas.push({
+                                        route: item.route,
+                                        dest: item.dest_tc || "Unknown",
+                                        mins: diffMins
+                                    });
+                                }
                             }
                         }
 
-                        // Sort primary by minutes remaining, secondary by route
+                        // Sort primary by minutes remaining
                         validEtas.sort(function(a, b) {
                             return a.mins - b.mins;
                         });
 
-                        // Generate HTML rows safely without ES6 templates
+                        // Generate HTML rows safely
                         var html = "";
                         if (validEtas.length === 0) {
-                            html = "<tr><td colspan='3'>No upcoming buses.</td></tr>";
+                            html = "<tr><td colspan='3'>No upcoming buses found in API.</td></tr>";
                         } else {
-                            // Only show the top 8 entries to fit comfortably on the Kindle screen
                             var displayCount = Math.min(validEtas.length, 8);
                             for (var j = 0; j < displayCount; j++) {
                                 var bus = validEtas[j];
-                                var etaString = bus.mins === 0 ? "Arriving" : bus.mins + " min";
+                                var etaString = bus.mins <= 1 ? "Arriving" : bus.mins + " min";
                                 
                                 html += "<tr>" +
                                         "<td class='route'>" + bus.route + "</td>" +
@@ -180,8 +99,10 @@
                         }
                         document.getElementById("eta-rows").innerHTML = html;
                     } catch (e) {
-                        document.getElementById("eta-rows").innerHTML = "<tr><td colspan='3'>Data error. Retrying...</td></tr>";
+                        document.getElementById("eta-rows").innerHTML = "<tr><td colspan='3'>Data parsing error.</td></tr>";
                     }
+                } else if (xhr.readyState === 4) {
+                    document.getElementById("eta-rows").innerHTML = "<tr><td colspan='3'>HTTP Connection failed.</td></tr>";
                 }
             };
             xhr.send();
@@ -192,10 +113,8 @@
         fetchWeather();
         fetchBusETA();
 
-        // Dashboards intervals (Kindle-friendly refresh rates)
-        setInterval(updateClock, 1000 * 10);     // Every 10 seconds
-        setInterval(fetchBusETA, 1000 * 30);     // Every 30 seconds
-        setInterval(fetchWeather, 1000 * 60 * 15); // Every 15 minutes
+        // Intervals
+        setInterval(updateClock, 1000 * 10);     
+        setInterval(fetchBusETA, 1000 * 30);     
+        setInterval(fetchWeather, 1000 * 60 * 15); 
     </script>
-</body>
-</html>
