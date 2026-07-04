@@ -3,94 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YL366 Stop Profile</title>
+    <title>YL366 Stop Information Profile</title>
     <style>
         body {
-            font-family: "Courier New", Courier, monospace, Arial, sans-serif;
-            background-color: #ffffff;
-            color: #000000;
-            margin: 20px;
-            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f7;
+            color: #333333;
+            margin: 0;
+            padding: 20px;
         }
-        .card {
-            border: 3px solid #000000;
-            padding: 15px;
-            max-width: 500px;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 24px;
+            border: 1px solid #e1e1e8;
         }
         h2 {
-            margin: 0 0 10px 0;
-            background-color: #000000;
-            color: #ffffff;
-            padding: 8px;
-            font-size: 24px;
+            margin: 0 0 20px 0;
+            color: #d9381e; /* KMB Red tint */
+            font-size: 26px;
+            border-bottom: 2px solid #f4f4f7;
+            padding-bottom: 12px;
+        }
+        .block {
+            margin-bottom: 18px;
         }
         .label {
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8e8e93;
             text-transform: uppercase;
-            color: #555555;
-            margin-top: 12px;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
         .value {
             font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            border-bottom: 1px dashed #000000;
-            padding-bottom: 3px;
+            font-weight: 500;
+            color: #1c1c1e;
+            padding: 6px 0;
+        }
+        .status {
+            padding: 10px;
+            background-color: #f2f2f7;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #555555;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Stop ID: YL366</h2>
-        
-        <div id="stop-data">
-            <p>Fetching stop details...</p>
+    <div class="container">
+        <h2>Bus Stop: YL366</h2>
+        <div id="display-panel">
+            <div class="status">Connecting to KMB database via AllOrigins proxy...</div>
         </div>
     </div>
 
     <script>
-        var PROXY = "https://corsproxy.io/?";
-        var STOP_API = "https://data.etabus.gov.hk/v1/transport/kmb/stop/YL366";
+        // AllOrigins proxy provides a highly compatible JSON wrapper that old iOS 9 WebKit accepts
+        var TARGET_URL = "https://data.etabus.gov.hk/v1/transport/kmb/stop/YL366";
+        var PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(TARGET_URL);
 
-        function fetchStopDetails() {
+        function loadStopData() {
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", PROXY + encodeURIComponent(STOP_API), true);
+            xhr.open("GET", PROXY_URL, true);
+            
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         try {
-                            var response = JSON.parse(xhr.responseText);
+                            // AllOrigins bundles the response inside a string data attribute
+                            var wrapper = JSON.parse(xhr.responseText);
+                            var response = JSON.parse(wrapper.contents);
                             var info = response.data;
                             
                             var html = 
-                                "<div class='label'>Traditional Chinese Name</div>" +
-                                "<div class='value'>" + info.name_tc + "</div>" +
+                                "<div class='block'>" +
+                                    "<div class='label'>Traditional Chinese Name / 中文名稱</div>" +
+                                    "<div class='value'>" + info.name_tc + "</div>" +
+                                "</div>" +
                                 
-                                "<div class='label'>English Name</div>" +
-                                "<div class='value'>" + info.name_en + "</div>" +
+                                "<div class='block'>" +
+                                    "<div class='label'>English Name</div>" +
+                                    "<div class='value'>" + info.name_en + "</div>" +
+                                "</div>" +
                                 
-                                "<div class='label'>Latitude / Longitude</div>" +
-                                "<div class='value'>" + info.lat + ", " + info.long + "</div>" +
+                                "<div class='block'>" +
+                                    "<div class='label'>Coordinates (Lat, Long)</div>" +
+                                    "<div class='value'>" + info.lat + ", " + info.long + "</div>" +
+                                "</div>" +
                                 
-                                "<div class='label'>Data Updated At</div>" +
-                                "<div class='value' style='border:none;'>" + info.data_timestamp.split('T')[0] + "</div>";
+                                "<div class='block'>" +
+                                    "<div class='label'>System Last Verified</div>" +
+                                    "<div class='value' style='font-size:15px; color:#666;'>" + info.data_timestamp + "</div>" +
+                                "</div>";
                                 
-                            document.getElementById("stop-data").innerHTML = html;
-                        } catch (e) {
-                            document.getElementById("stop-data").innerHTML = "<p>Error parsing JSON data.</p>";
+                            document.getElementById("display-panel").innerHTML = html;
+                        } catch (err) {
+                            document.getElementById("display-panel").innerHTML = 
+                                "<div class='status' style='color:red;'>Data parsing failed. The API structure format may have updated.</div>";
                         }
                     } else {
-                        document.getElementById("stop-data").innerHTML = "<p>Failed to connect to API.</p>";
+                        document.getElementById("display-panel").innerHTML = 
+                            "<div class='status' style='color:red;'>Unable to pull data. Gateway Status: " + xhr.status + "</div>";
                     }
                 }
             };
             xhr.send();
         }
 
-        // Run on load
-        fetchStopDetails();
+        // Run immediately
+        loadStopData();
     </script>
 </body>
 </html>
