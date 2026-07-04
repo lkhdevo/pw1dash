@@ -13,61 +13,6 @@
             margin: 15px;
             padding: 0;
         }
-        #header {
-            border-bottom: 3px solid #000000;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        #left-header {
-            flex: 1;
-        }
-        #time-container {
-            font-size: 42px;
-            font-weight: bold;
-            display: flex;
-            gap: 15px;
-            align-items: baseline;
-        }
-        #date {
-            font-size: 24px;
-            color: #555555;
-        }
-        #time {
-            font-size: 42px;
-        }
-        #meta {
-            font-size: 16px;
-            margin-top: 5px;
-        }
-        /* 3-Day Forecast Grid next to time */
-        #forecast-container {
-            display: flex;
-            gap: 12px;
-            text-align: center;
-        }
-        .forecast-day {
-            border: 2px solid #000000;
-            padding: 6px 8px;
-            min-width: 75px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        .fc-date {
-            border-bottom: 1px dashed #000000;
-            padding-bottom: 2px;
-            margin-bottom: 4px;
-        }
-        .fc-temp {
-            font-size: 14px;
-            margin-bottom: 2px;
-        }
-        .fc-rain {
-            font-size: 12px;
-            color: #444444;
-        }
         .stop-banner {
             background-color: #000000;
             color: #ffffff;
@@ -122,20 +67,6 @@
 </head>
 <body>
 
-    <div id="header">
-        <div id="left-header">
-            <div id="time-container">
-                <span id="date">01/01</span>
-                <span id="time">00:00</span>
-            </div>
-            <div id="meta">Loading weather...</div>
-        </div>
-        <!-- 3 Day Forecast Layout Widget Beside Time -->
-        <div id="forecast-container">
-            <div class="status-msg" style="font-size:12px; padding:0;">Loading forecast...</div>
-        </div>
-    </div>
-
     <!-- STOP GROUP BANNER -->
     <div class="stop-banner">元朗喜利徑 Hi Lee Path (YL367)</div>
     
@@ -165,8 +96,6 @@
         // CONFIGURATION: 
         var USE_PROXY = false; 
         var PROXY = "https://corsproxy.io/?";
-        var HKO_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
-        var HKO_FND_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en";
 
         // Separate Stop Endpoints for explicit processing
         var STOP_268X = "221A18C37331E6FD";
@@ -174,100 +103,6 @@
 
         var API_268X = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + STOP_268X;
         var API_68X  = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/" + STOP_68X;
-
-        // 1. Clock & Date Engine
-        function updateClock() {
-            var now = new Date();
-            var day = now.getDate();
-            var month = now.getMonth() + 1;
-            var hrs = now.getHours();
-            var mins = now.getMinutes();
-            
-            if (day < 10) day = "0" + day;
-            if (month < 10) month = "0" + month;
-            if (hrs < 10) hrs = "0" + hrs;
-            if (mins < 10) mins = "0" + mins;
-            
-            document.getElementById("date").innerHTML = day + "/" + month;
-            document.getElementById("time").innerHTML = hrs + ":" + mins;
-        }
-
-        // 2. Current Weather Engine (Temperature, Humidity & Local Rain Depth)
-        function fetchWeather() {
-            var url = USE_PROXY ? (PROXY + encodeURIComponent(HKO_API)) : HKO_API;
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        
-                        // Parse Temperature
-                        var temp = data.temperature.data[0].value; 
-                        for (var i = 0; i < data.temperature.data.length; i++) {
-                            if (data.temperature.data[i].place === "Yuen Long") {
-                                temp = data.temperature.data[i].value;
-                                break;
-                            }
-                        }
-                        
-                        // Parse Humidity
-                        var humidity = data.humidity.data[0].value;
-                        
-                        // Parse Today's Past-Hour Rainfall Accumulation for Yuen Long
-                        var rainVal = 0;
-                        if (data.rainfall && data.rainfall.data) {
-                            for (var r = 0; r < data.rainfall.data.length; r++) {
-                                if (data.rainfall.data[r].place === "Yuen Long") {
-                                    rainVal = data.rainfall.data[r].max; 
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        document.getElementById("meta").innerHTML = temp + "°C | Humidity: " + humidity + "% | Rain: " + rainVal + "mm";
-                    } catch (e) {
-                        document.getElementById("meta").innerHTML = "Weather off";
-                    }
-                }
-            };
-            xhr.send();
-        }
-
-        // 3. 3-Day Weather Forecast Engine
-        function fetchForecast() {
-            var url = USE_PROXY ? (PROXY + encodeURIComponent(HKO_FND_API)) : HKO_FND_API;
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        var forecastList = data.weatherForecast;
-                        var html = "";
-                        
-                        for (var i = 0; i < Math.min(3, forecastList.length); i++) {
-                            var dayData = forecastList[i];
-                            var rawDate = dayData.forecastDate;
-                            var dayDisplay = rawDate.substring(6, 8) + "/" + rawDate.substring(4, 6);
-                            var minTemp = dayData.forecastMintemp.value;
-                            var maxTemp = dayData.forecastMaxtemp.value;
-                            var rainProb = dayData.PSR || "N/A";
-                            
-                            html += "<div class='forecast-day'>" +
-                                        "<div class='fc-date'>" + dayDisplay + "</div>" +
-                                        "<div class='fc-temp'>" + minTemp + "-" + maxTemp + "°C</div>" +
-                                        "<div class='fc-rain'>Rain: " + rainProb + "</div>" +
-                                    "</div>";
-                        }
-                        document.getElementById("forecast-container").innerHTML = html;
-                    } catch (e) {
-                        document.getElementById("forecast-container").innerHTML = "<div class='status-msg'>Forecast error</div>";
-                    }
-                }
-            };
-            xhr.send();
-        }
 
         // Helper framework to fetch, process, filter, de-duplicate and display a route
         function fetchRouteETA(apiEndpoint, routeTarget, targetElementId) {
@@ -345,22 +180,16 @@
         }
 
         function masterRefresh() {
-            updateClock();
             fetchRouteETA(API_268X, "268X", "eta-rows-268x");
             fetchRouteETA(API_68X, "68X", "eta-rows-68x");
         }
 
         // Initial Executions
-        updateClock();
-        fetchWeather();
-        fetchForecast();
         fetchRouteETA(API_268X, "268X", "eta-rows-268x");
         fetchRouteETA(API_68X, "68X", "eta-rows-68x");
 
-        // Execution Loops
+        // Execution Loop (Refreshes ETA every minute)
         setInterval(masterRefresh, 1000 * 60);     
-        setInterval(fetchWeather, 1000 * 60 * 15); 
-        setInterval(fetchForecast, 1000 * 60 * 60); 
     </script>
 </body>
 </html>
