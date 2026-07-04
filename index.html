@@ -1,120 +1,14 @@
-<script>
-        // Using an open proxy to circumvent CORS restrictions and Kindle SSL handshake failures
-        var PROXY = "https://corsproxy.io/?";
-        var KMB_API = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/YL366";
-        var HKO_API = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
-
-        // 1. Update Clock (ES5 compatible syntax for old Kindle)
-        function updateClock() {
-            var now = new Date();
-            var hrs = now.getHours();
-            var mins = now.getMinutes();
-            if (hrs < 10) hrs = "0" + hrs;
-            if (mins < 10) mins = "0" + mins;
-            document.getElementById("time").innerHTML = hrs + ":" + mins;
-        }
-
-        // 2. Fetch Weather from Hong Kong Observatory
-        function fetchWeather() {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", PROXY + encodeURIComponent(HKO_API), true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        var temp = data.temperature.data[0].value; 
-                        for (var i = 0; i < data.temperature.data.length; i++) {
-                            if (data.temperature.data[i].place === "Yuen Long") {
-                                temp = data.temperature.data[i].value;
-                                break;
-                            }
-                        }
-                        var humidity = data.humidity.data[0].value;
-                        document.getElementById("meta").innerHTML = temp + "°C | Humidity: " + humidity + "%";
-                    } catch (e) {
-                        document.getElementById("meta").innerHTML = "Weather error";
-                    }
-                }
-            };
-            xhr.send();
-        }
-
-        // 3. Fetch KMB Bus ETA
-        function fetchBusETA() {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", PROXY + encodeURIComponent(KMB_API), true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        var list = response.data;
-                        
-                        var validEtas = [];
-
-                        for (var i = 0; i < list.length; i++) {
-                            var item = list[i];
-                            
-                            // If there is an explicit ETA timestamp provided by KMB
-                            if (item.eta) {
-                                var etaDate = new Date(item.eta);
-                                var rtimestamp = new Date(item.data_timestamp);
-                                
-                                // Kindle clock workaround: Use KMB's own timestamp as "now" 
-                                // instead of the Kindle's local clock to calculate remaining minutes.
-                                var diffMs = etaDate - rtimestamp;
-                                var diffMins = Math.max(0, Math.floor(diffMs / 1000 / 60));
-                                
-                                // Filter duplicate sequences from the same route line
-                                if (item.eta_seq === 1) {
-                                    validEtas.push({
-                                        route: item.route,
-                                        dest: item.dest_tc || "Unknown",
-                                        mins: diffMins
-                                    });
-                                }
-                            }
-                        }
-
-                        // Sort primary by minutes remaining
-                        validEtas.sort(function(a, b) {
-                            return a.mins - b.mins;
-                        });
-
-                        // Generate HTML rows safely
-                        var html = "";
-                        if (validEtas.length === 0) {
-                            html = "<tr><td colspan='3'>No upcoming buses found in API.</td></tr>";
-                        } else {
-                            var displayCount = Math.min(validEtas.length, 8);
-                            for (var j = 0; j < displayCount; j++) {
-                                var bus = validEtas[j];
-                                var etaString = bus.mins <= 1 ? "Arriving" : bus.mins + " min";
-                                
-                                html += "<tr>" +
-                                        "<td class='route'>" + bus.route + "</td>" +
-                                        "<td>" + bus.dest + "</td>" +
-                                        "<td class='eta-time'>" + etaString + "</td>" +
-                                        "</tr>";
-                            }
-                        }
-                        document.getElementById("eta-rows").innerHTML = html;
-                    } catch (e) {
-                        document.getElementById("eta-rows").innerHTML = "<tr><td colspan='3'>Data parsing error.</td></tr>";
-                    }
-                } else if (xhr.readyState === 4) {
-                    document.getElementById("eta-rows").innerHTML = "<tr><td colspan='3'>HTTP Connection failed.</td></tr>";
-                }
-            };
-            xhr.send();
-        }
-
-        // Initial Executions
-        updateClock();
-        fetchWeather();
-        fetchBusETA();
-
-        // Intervals
-        setInterval(updateClock, 1000 * 10);     
-        setInterval(fetchBusETA, 1000 * 30);     
-        setInterval(fetchWeather, 1000 * 60 * 15); 
-    </script>
+{
+  "type": "Stop",
+  "version": "1.0",
+  "generated_timestamp": "2026-07-04T10:15:00+08:00",
+  "data": {
+    "stop": "YL366",
+    "name_en": "HI LEE PATH YUEN LONG",
+    "name_tc": "喜利徑",
+    "name_sc": "喜利径",
+    "lat": "22.4448", 
+    "long": "114.0256",
+    "data_timestamp": "2026-07-04T05:00:00+08:00"
+  }
+}
