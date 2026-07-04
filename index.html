@@ -1,14 +1,96 @@
-{
-  "type": "Stop",
-  "version": "1.0",
-  "generated_timestamp": "2026-07-04T10:15:00+08:00",
-  "data": {
-    "stop": "YL366",
-    "name_en": "HI LEE PATH YUEN LONG",
-    "name_tc": "喜利徑",
-    "name_sc": "喜利径",
-    "lat": "22.4448", 
-    "long": "114.0256",
-    "data_timestamp": "2026-07-04T05:00:00+08:00"
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YL366 Stop Profile</title>
+    <style>
+        body {
+            font-family: "Courier New", Courier, monospace, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 20px;
+            padding: 0;
+        }
+        .card {
+            border: 3px solid #000000;
+            padding: 15px;
+            max-width: 500px;
+        }
+        h2 {
+            margin: 0 0 10px 0;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 8px;
+            font-size: 24px;
+        }
+        .label {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #555555;
+            margin-top: 12px;
+        }
+        .value {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #000000;
+            padding-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Stop ID: YL366</h2>
+        
+        <div id="stop-data">
+            <p>Fetching stop details...</p>
+        </div>
+    </div>
+
+    <script>
+        var PROXY = "https://corsproxy.io/?";
+        var STOP_API = "https://data.etabus.gov.hk/v1/transport/kmb/stop/YL366";
+
+        function fetchStopDetails() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", PROXY + encodeURIComponent(STOP_API), true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            var info = response.data;
+                            
+                            var html = 
+                                "<div class='label'>Traditional Chinese Name</div>" +
+                                "<div class='value'>" + info.name_tc + "</div>" +
+                                
+                                "<div class='label'>English Name</div>" +
+                                "<div class='value'>" + info.name_en + "</div>" +
+                                
+                                "<div class='label'>Latitude / Longitude</div>" +
+                                "<div class='value'>" + info.lat + ", " + info.long + "</div>" +
+                                
+                                "<div class='label'>Data Updated At</div>" +
+                                "<div class='value' style='border:none;'>" + info.data_timestamp.split('T')[0] + "</div>";
+                                
+                            document.getElementById("stop-data").innerHTML = html;
+                        } catch (e) {
+                            document.getElementById("stop-data").innerHTML = "<p>Error parsing JSON data.</p>";
+                        }
+                    } else {
+                        document.getElementById("stop-data").innerHTML = "<p>Failed to connect to API.</p>";
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // Run on load
+        fetchStopDetails();
+    </script>
+</body>
+</html>
