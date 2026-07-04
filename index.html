@@ -51,17 +51,27 @@
         }
         td {
             padding: 12px 5px;
-            font-size: 24px;
             font-weight: bold;
             border-bottom: 2px dashed #000000;
+            vertical-align: middle;
         }
         .seq {
             width: 20%;
+            font-size: 24px;
             color: #666666;
         }
-        .eta-val {
+        .eta-container {
             text-align: right;
             width: 80%;
+        }
+        .actual-time {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .relative-mins {
+            font-size: 16px;
+            color: #555555;
         }
         .status-msg {
             font-size: 16px;
@@ -154,7 +164,6 @@
                             for (var i = 0; i < list.length; i++) {
                                 var item = list[i];
                                 
-                                // Explicitly isolate the 268X route object arrays
                                 if (item.route === "268X" && item.eta) {
                                     var etaTime = new Date(item.eta);
                                     var baseTime = new Date(item.data_timestamp);
@@ -162,28 +171,37 @@
                                     var diffMs = etaTime - baseTime;
                                     var diffMins = Math.max(0, Math.floor(diffMs / 1000 / 60));
                                     
+                                    // Extract absolute clock hours and minutes for arrival time
+                                    var etaHours = etaTime.getHours();
+                                    var etaMins = etaTime.getMinutes();
+                                    if (etaHours < 10) etaHours = "0" + etaHours;
+                                    if (etaMins < 10) etaMins = "0" + etaMins;
+                                    var clockString = etaHours + ":" + etaMins;
+                                    
                                     sortedEtas.push({
                                         mins: diffMins,
+                                        clock: clockString,
                                         seq: item.eta_seq
                                     });
                                 }
                             }
 
-                            // Sort chronologically by sequence layout
                             sortedEtas.sort(function(a, b) { return a.seq - b.seq; });
 
-                            // Build Layout HTML Output
                             var html = "";
                             if (sortedEtas.length === 0) {
                                 html = "<tr><td class='status-msg'>No scheduled 268X runs.</td></tr>";
                             } else {
                                 for (var j = 0; j < sortedEtas.length; j++) {
                                     var bus = sortedEtas[j];
-                                    var timeDisplay = bus.mins <= 1 ? "Arriving / 到站中" : bus.mins + " min";
+                                    var timeDisplay = bus.mins <= 1 ? "Arriving / 到站中" : bus.mins + " mins";
                                     
                                     html += "<tr>" +
                                                 "<td class='seq'>[" + bus.seq + "]</td>" +
-                                                "<td class='eta-val'>" + timeDisplay + "</td>" +
+                                                "<td class='eta-container'>" +
+                                                    "<div class='actual-time'>" + bus.clock + "</div>" +
+                                                    "<div class='relative-mins'>" + timeDisplay + "</div>" +
+                                                "</td>" +
                                             "</tr>";
                                 }
                             }
@@ -200,14 +218,19 @@
             xhr.send();
         }
 
-        // Execution Core Loops
+        function masterRefresh() {
+            updateClock();
+            fetch268X();
+        }
+
+        // Initial Executions
         updateClock();
         fetchWeather();
         fetch268X();
 
-        setInterval(updateClock, 1000 * 12);     
-        setInterval(fetch268X, 1000 * 30);     
-        setInterval(fetchWeather, 1000 * 60 * 15);
+        // Execution Loops
+        setInterval(masterRefresh, 1000 * 60);     
+        setInterval(fetchWeather, 1000 * 60 * 15); 
     </script>
 </body>
 </html>
